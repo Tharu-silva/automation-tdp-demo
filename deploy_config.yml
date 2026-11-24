@@ -1,0 +1,23 @@
+---
+- name: Fedora Lane config push using a protected API key
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: Confirm key is available without revealing it
+      ansible.builtin.debug:
+        msg: "API key is present, length {{ lookup('env', 'FL_API_KEY') | length }}"
+
+    - name: Call the Fedora Lane API with the protected key
+      ansible.builtin.uri:
+        url: "{{ lookup('env', 'FL_API_URL') }}/bearer"
+        method: GET
+        headers:
+          Authorization: "Bearer {{ lookup('env', 'FL_API_KEY') }}"
+        return_content: false
+      delegate_to: localhost
+      no_log: true
+      register: api_result
+
+    - name: Report outcome
+      ansible.builtin.debug:
+        msg: "API call succeeded with status {{ api_result.status }}"
